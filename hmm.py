@@ -52,27 +52,47 @@ def training(train_data, all_tags):
 			else:
 				observations[tag_id][word_id] += 1
 	normalized_obs = [normalize_dict(output_probs) for output_probs in observations]			
-	return normalize(transition_matrix, 2), normalize(initial_probability), normalized_obs
+	return normalize(transition_matrix, 2), normalize(initial_probability), normalized_obs, tag_dict, word_dict
 
 
 def normalize_dict(d):
 	return {key:value/sum(d.values()) for key,value in d.items()}
+
 def normalize(matrix, dim = 1):
 	if dim == 2:
 		return [[float(i)/sum(row) for i in row] for row in matrix]
 	else:	
 		return [float(i)/sum(matrix) for i in matrix]
 
-def test(data): 
+
+def test(data, tag_dict, word_dict): 
+	correct_sentence = 0
+	wrong_sentence = 0
+	correct_word = 0
+	wrong_word = 0
+	conf_mat = [[0 for i in range(len(tag_dict))] for j in range(len(tag_dict)) ]
 	for sequence in data:
-		tags = viterbi(map(lambda x: x[1], sequence))
+		actual_tags = map(lambda x: x[1], sequence)
+		predicted_tags = viterbi(map(lambda x: word_dict[x[0]], sequence))
+		if actual_tags == predicted_tags:
+			correct_sentence += 1
+		else: 
+			wrong_sentence += 1
+		for actual_tag, predicted_tag in zip(actual_tags, predicted_tags):
+			if actual_tag == predicted_tag:
+				correct_word += 1
+			else: 
+				wrong_word += 1
+				conf_mat[tag_dict[actual_tag]][tag_dict[predicted_tag]] += 1	
+			
 
 def enumerate_list(data):
 	return {instance: index for index, instance in enumerate(data)}
 
 all_sequences, all_tags = get_data('Project (Application 1) (MetuSabanci Treebank).conll')
 train_data, test_data = split_data(all_sequences, 90)
-transition_matrix, initial_prob, obs = training(train_data, all_tags)
-print(transition_matrix)
-print(initial_prob)
-print(obs)
+transition_matrix, initial_prob, obs, tag_dict, word_dict = training(train_data, all_tags)
+test(test_data, tag_dict, word_dict)
+#print(transition_matrix)
+#print(initial_prob)
+#print(obs)
