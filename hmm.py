@@ -2,7 +2,7 @@
 from random import shuffle
 
 def get_data(filepath):
-	raw_data = open(filepath).readlines()
+	raw_data = open(filepath,encoding='utf8').readlines()
 	all_sequences = []
 	current_sequence = []
 	all_tags = []
@@ -73,7 +73,7 @@ def test(data, tag_dict, word_dict):
 	conf_mat = [[0 for i in range(len(tag_dict))] for j in range(len(tag_dict)) ]
 	for sequence in data:
 		actual_tags = map(lambda x: x[1], sequence)
-		predicted_tags = viterbi(map(lambda x: word_dict[x[0]], sequence))
+		predicted_tags = viterbi(len(word_dict), len(tag_dict),initial_prob, list(map(lambda x: word_dict.get(x[0].lower(),0), sequence)) ,transition_matrix,obs)
 		if actual_tags == predicted_tags:
 			correct_sentence += 1
 		else: 
@@ -83,11 +83,52 @@ def test(data, tag_dict, word_dict):
 				correct_word += 1
 			else: 
 				wrong_word += 1
-				conf_mat[tag_dict[actual_tag]][tag_dict[predicted_tag]] += 1	
+				conf_mat[tag_dict[actual_tag]][predicted_tag] += 1	
+	print(conf_mat)
 			
 
 def enumerate_list(data):
 	return {instance: index for index, instance in enumerate(data)}
+
+# observations
+# states
+# p_init initial probabilities
+# sequence observations in time
+# Tr transitions
+# p_obs probability of seeing observation on a state
+
+def viterbi(numObservations, numStates,p_init, sequence, Tr,p_obs):
+    viterb = [[0]*(len(sequence)+2)]*numStates
+    backpointer = [[0]*(len(sequence)+2)]*numStates
+    
+    states = list(range(0,numStates))
+    observations = list(range(0,numObservations))
+    for s in states:
+        try:
+            viterb[s][0] = p_init[s]*p_obs[s][sequence[0]]
+        except:
+            viterb[s][0] = 0#p_init[s]*0.00001
+        backpointer[s][0] = 0
+    for o in range(0,len(sequence)):
+        for s in states:
+            try:
+                results = list(map(lambda k: viterb[k][o-1]*Tr[k][s]*p_obs[s][sequence[s]] ,states))
+            except:
+                results = list(map(lambda k: 0,states))
+            max_result = max(results)
+            viterb[s][o] = max_result
+            backpointer[s][o] = results.index(max_result)
+            results = []
+    results = list(map(lambda k: viterb[k][states[-1]],states))
+    t = states[-1]
+    X = list(range(0,t+1))
+    Z = list(range(0,t+1))
+    Z[-1] =  results.index(max(results))
+    X[-1] = states[Z[t]]
+    for i in range(states[-1],1,-1):
+        Z[i-1] = backpointer[Z[i]][i]
+        X[i-1] = states[Z[i-1]]
+    return X
 
 all_sequences, all_tags = get_data('Project (Application 1) (MetuSabanci Treebank).conll')
 train_data, test_data = split_data(all_sequences, 90)
