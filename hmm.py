@@ -24,10 +24,10 @@ class HMM:
         self.initial_probs = None
 
     def train(self):
-        self.tags = sorted(list(set([tag for sequence in train_data for word, tag in sequence])))
+        self.tags = sorted(list(set([tag for sequence in self.train_data for word, tag in sequence])))
         print(self.tags)
         self.tag_dict = enumerate_list(self.tags)    
-        self.words = list(set([word.lower() for sequence in train_data for word, tag in sequence]))
+        self.words = list(set([word.lower() for sequence in self.train_data for word, tag in sequence]))
         self.word_dict = enumerate_list(self.words)
         self.num_of_tags = len(self.tags)
         transition_probs= np.zeros((self.num_of_tags, self.num_of_tags)) 
@@ -227,7 +227,7 @@ def get_data(filepath):
 
 def split_data(data, percent):
     shuffle(data)
-    train_size = int(len(data) * percent / 100)
+    train_size = int(len(data) * int(percent) / 100)
     return data[:train_size], data[train_size:]
 
 def normalize(matrix):
@@ -286,6 +286,6 @@ def main(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--data', default='Project (Application 1) (MetuSabanci Treebank).conll')
-    parser.add_argument('--split', default=90)
+    parser.add_argument('--split', default='90')
     args = parser.parse_args()
     main(args)
