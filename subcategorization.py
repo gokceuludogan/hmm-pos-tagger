@@ -29,7 +29,7 @@ def is_verb(word):
     elif re.search(r'(m[ae]z)(l[ae]r)?\b', word):
         return True
     elif re.search(r'([ae]l[iı]m)\b', word):
-        return wwwwwwwwwwwww/.
+        return True
     elif re.search(r'(r[iıuü]m)\b', word):
         return True
     elif re.search(r'([iı]z)\b', word):
@@ -39,7 +39,7 @@ def is_verb(word):
     elif re.search(r'(m[ae](m|y[iı]n))\b', word):
         return True
     elif re.search(r'((y)?([iıuü]n))\b', word):
-        return True                    opppppppppppppppppp0000000000000w                 
+        return True                                  
     else:
         return False
 
