@@ -7,6 +7,7 @@ from matplotlib.colors import LogNorm
 import matplotlib.pyplot as plt
 import itertools
 from subcategorization import is_verb, is_noun, is_pron, is_ques, is_adj, is_adv, is_det
+import argparse
 
 class HMM:
 
@@ -130,7 +131,7 @@ class HMM:
         return x.tolist()
 
     def get_emission_prob(self, word, state=-1):
-        method = 1
+        method = 2
         #print(self.tags)
         index = self.word_dict.get(word.lower(), -1)   
         #print(word + ' ' + str(index) +  str(state))
@@ -273,10 +274,18 @@ def plot_confusion_matrix(cm, cmap=None, normalize = True, target_names = None, 
     #plt.xlabel('Predicted label\naccuracy={:0.4f}; misclass={:0.4f}'.format(accuracy, misclass))
     plt.savefig('output.png')
 
-seed(5)
-all_sequences = get_data('../Project (Application 1) (MetuSabanci Treebank).conll')
-train_data, test_data = split_data(all_sequences, 90)
-hmm = HMM(train_data, test_data)
-hmm.train()
-hmm.test()
-#print(hmm.get_emission_prob('ne', -1))
+def main(args):
+    seed(5)
+    all_sequences = get_data(args.data)
+    train_data, test_data = split_data(all_sequences, args.split)
+    hmm = HMM(train_data, test_data)
+    hmm.train()
+    hmm.test()
+    #print(hmm.get_emission_prob('ne', -1))
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--data', default='Project (Application 1) (MetuSabanci Treebank).conll')
+    parser.add_argument('--split', default=90)
+    args = parser.parse_args()
+    main(args)
