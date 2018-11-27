@@ -12,7 +12,7 @@ from collections import Counter
 
 class HMM:
 
-    def __init__(self, train_data, test_data,unknown_to_singleton):
+    def __init__(self, train_data, test_data,unknown_to_singleton,printSequences):
         self.train_data = train_data
         self.test_data = test_data
         self.tags = []
@@ -25,6 +25,7 @@ class HMM:
         self.emission_probs = None
         self.initial_probs = None
         self.unknown_to_singleton = unknown_to_singleton
+        self.printSequences = printSequences
 
     def train(self):
         self.tags = sorted(list(set([tag for sequence in self.train_data for word, tag in sequence])))
@@ -70,12 +71,12 @@ class HMM:
         for index, sequence in enumerate(self.test_data):
             actual_tags = list(map(lambda x: self.tag_dict[x[1]], sequence))
             predicted_tags = self.viterbi(list(map(lambda x: x[0], sequence)), actual_tags)
-            #print(' '.join(map(lambda x: x[0], sequence)))
-            #print(str(index) + ' '.join([word for word, tag in sequence]))
-            #print(' '.join(map(lambda x: x[1], sequence)))
-            #print(' '.join([str(self.tags[tag]) for tag in predicted_tags]))
-            #print(' '.join(map(lambda x: str(self.word_dict.get(x[0].lower(),-1)), sequence)))
-            #sentence_truth[actual_tags == predicted_tags] += 1
+            if self.printSequences==1:
+                print(' '.join(map(lambda x: x[0], sequence)))
+                print(str(index) + ' '.join([word for word, tag in sequence]))
+                print(' '.join(map(lambda x: x[1], sequence)))
+                print(' '.join([str(self.tags[tag]) for tag in predicted_tags]))
+                print(' '.join(map(lambda x: str(self.word_dict.get(x[0].lower(),-1)), sequence)))
             if actual_tags == predicted_tags:
                 sentence_truth[0] += 1
             else: 
@@ -87,7 +88,9 @@ class HMM:
                     word_truth[1] += 1
                 conf_mat[actual_tag, predicted_tag] += 1  
         print(sentence_truth)
+        print("sentence truth : "+str(sentence_truth[0]/(sentence_truth[0]+sentence_truth[1]))+"%")
         print(word_truth)
+        print("word truth : "+str(word_truth[0]/(word_truth[0]+word_truth[1]))+"%")
         plot_confusion_matrix(conf_mat, normalize=False)
         return word_truth, sentence_truth, conf_mat
 
@@ -128,10 +131,10 @@ class HMM:
         if state == -1:
             all_emissions = np.zeros(len(self.tags))
             for tag in probable_tags:
-                all_emissions[self.tag_dict[tag]] = self.emission_probs[self.tag_dict[tag]].min()
+                all_emissions[self.tag_dict[tag]] = self.emission_probs[self.tag_dict[tag]].mean()
             return all_emissions
         else:     
-            return np.matrix([self.emission_probs[self.tag_dict[tag]].min() for tag in probable_tags]).mean() 
+            return np.matrix([self.emission_probs[self.tag_dict[tag]] for tag in probable_tags]).mean() 
 
 def get_data(filepath):
     raw_data = open(filepath, encoding='utf8').readlines()
@@ -203,7 +206,7 @@ def main(args):
     seed(5)
     all_sequences = get_data(args.data)
     train_data, test_data = split_data(all_sequences, args.split)
-    hmm = HMM(train_data, test_data, int(args.unknown_to_singleton))
+    hmm = HMM(train_data, test_data, int(args.unknown_to_singleton),int(args.printSequences))
     hmm.train()
     hmm.test()
 
@@ -212,6 +215,7 @@ if __name__ == '__main__':
     parser.add_argument('--data', default='Project (Application 1) (MetuSabanci Treebank).conll')
     parser.add_argument('--split', default='90')
     parser.add_argument('--unknown_to_singleton', default='0')
+    parser.add_argument('--printSequences',default='0')
 
     args = parser.parse_args()
     main(args)
