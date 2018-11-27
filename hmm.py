@@ -87,11 +87,9 @@ class HMM:
                 else: 
                     word_truth[1] += 1
                 conf_mat[actual_tag, predicted_tag] += 1  
-        print(sentence_truth)
         print("sentence truth : "+str(sentence_truth[0]/(sentence_truth[0]+sentence_truth[1]))+"%")
-        print(word_truth)
         print("word truth : "+str(word_truth[0]/(word_truth[0]+word_truth[1]))+"%")
-        plot_confusion_matrix(conf_mat, normalize=False)
+        plot_confusion_matrix(conf_mat, normalize=False,unknown_to_singleton=self.unknown_to_singleton)
         return word_truth, sentence_truth, conf_mat
 
     def viterbi(self, sequence, actual_tags):
@@ -202,6 +200,7 @@ def plot_confusion_matrix(cm, cmap=None, normalize = True, target_names = None, 
         plt.savefig('output_UtoS.png')
     else:
         plt.savefig('output.png')
+
 def main(args):
     seed(5)
     all_sequences = get_data(args.data)
